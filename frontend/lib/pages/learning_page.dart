@@ -35,6 +35,13 @@ class _LearningPageState extends ConsumerState<LearningPage> {
         title: const Text('刻印室'),
         backgroundColor: VocaTheme.background,
         actions: [
+          // Skip button for testing
+          if (state.session != null && state.status == SessionStatus.active)
+            IconButton(
+              onPressed: () => ref.read(learningProvider.notifier).skipToSummary(),
+              icon: const Icon(Icons.skip_next, color: VocaTheme.textMuted),
+              tooltip: '跳过 (测试用)',
+            ),
           if (state.session != null)
             Padding(
               padding: const EdgeInsets.only(right: 16),
@@ -63,8 +70,9 @@ class _LearningPageState extends ConsumerState<LearningPage> {
       case SessionStatus.active:
       case SessionStatus.answering:
         return _buildLearningCard(state);
+      case SessionStatus.generating:
       case SessionStatus.complete:
-        // Navigate to summary
+        // Navigate to summary (generating shows loading animation there)
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const SummaryPage()),

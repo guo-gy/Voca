@@ -112,25 +112,33 @@ class ProgressResponse {
   }
 }
 
-/// AI Story response
+/// AI Story response with translation
 class StoryResponse {
-  final String content;
-  final List<String> keywords;
+  final String content;  // English story
+  final String translation;  // Chinese translation
+  final List<String> keywords;  // Studied words
+  final Map<String, String> wordDefinitions;  // word -> Chinese definition
   final String theme;
   
   StoryResponse({
     required this.content,
+    this.translation = "",
     required this.keywords,
+    this.wordDefinitions = const {},
     required this.theme,
   });
   
   factory StoryResponse.fromJson(Map<String, dynamic> json) {
     return StoryResponse(
       content: json['content'] as String,
+      translation: json['translation'] as String? ?? '',
       keywords: (json['keywords'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
+      wordDefinitions: (json['word_definitions'] as Map<String, dynamic>?)
+          ?.map((k, v) => MapEntry(k, v as String)) ?? {},
       theme: json['theme'] as String,
     );
   }
 }
+

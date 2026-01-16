@@ -70,6 +70,9 @@ class StoryRequest(SQLModel):
 
 class StoryResponse(SQLModel):
     """API response with generated story"""
-    content: str
-    keywords: list[str]
+    content: str  # English story
+    translation: str = ""  # Chinese translation
+    keywords: list[str]  # Studied words
+    word_definitions: dict[str, str] = {}  # word -> Chinese definition
     theme: str
+

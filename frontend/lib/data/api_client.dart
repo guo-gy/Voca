@@ -84,6 +84,20 @@ class ApiClient {
       throw ApiException('Failed to get progress: $e');
     }
   }
+  
+  /// Translate a single word (checks DB, falls back to AI)
+  Future<Map<String, String>> translateWord(String word) async {
+    try {
+      final response = await _dio.get('/translate/${Uri.encodeComponent(word)}');
+      return {
+        'word': response.data['word'] as String,
+        'definition': response.data['definition'] as String,
+        'source': response.data['source'] as String,
+      };
+    } catch (e) {
+      throw ApiException('Failed to translate: $e');
+    }
+  }
 }
 
 class ApiException implements Exception {

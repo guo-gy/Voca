@@ -12,7 +12,7 @@ final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 final userIdProvider = Provider<String>((ref) => 'demo_user_001');
 
 /// Learning Session State
-enum SessionStatus { initial, loading, active, answering, complete, error }
+enum SessionStatus { initial, loading, active, answering, generating, complete, error }
 
 class LearningState {
   final SessionStatus status;
@@ -132,21 +132,46 @@ class LearningNotifier extends StateNotifier<LearningState> {
     final session = state.session;
     if (session == null) return;
     
+    // Set generating state for loading animation
+    state = state.copyWith(status: SessionStatus.generating);
+    
     try {
+      // Debug: Print all word IDs
       final wordIds = session.words.map((w) => w.word.id).toList();
+      print('[Frontend] Session has ${session.words.length} words');
+      print('[Frontend] Word IDs to send: $wordIds');
+      print('[Frontend] Words: ${session.words.map((w) => w.word.text).toList()}');
+      
       final story = await _api.generateStory(wordIds: wordIds);
+      
+      print('[Frontend] Story received, length: ${story.content.length}');
       
       state = state.copyWith(
         status: SessionStatus.complete,
         story: story,
       );
     } catch (e) {
+      print('[Frontend] Error generating story: $e');
       // Still mark as complete even if story fails
       state = state.copyWith(
         status: SessionStatus.complete,
         errorMessage: 'Story generation failed: $e',
       );
     }
+  }
+  
+  /// Skip to summary (for testing purposes)
+  Future<void> skipToSummary() async {
+    final session = state.session;
+    if (session == null) return;
+    
+    // Mark all words as mastered locally
+    for (var wordProgress in session.words) {
+      wordProgress.masteryCount = 3;
+    }
+    
+    // Generate story
+    await _generateStory();
   }
   
   /// Reset and start new session
