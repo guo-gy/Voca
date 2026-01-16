@@ -1,0 +1,33 @@
+name: voca_app
+description: "Voca 语刻 - AI-powered vocabulary learning with 3次刻印 mastery system"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  flutter_riverpod: ^2.6.1
+  
+  # Networking
+  dio: ^5.8.0+1
+  
+  # UI Enhancements
+  cupertino_icons: ^1.0.8
+  flutter_animate: ^4.5.2
+  
+  # Utilities
+  path_provider: ^2.1.5
+  flutter_markdown: ^0.7.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
