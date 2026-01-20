@@ -8,13 +8,33 @@ from typing import Optional
 from sqlmodel import SQLModel, Field
 
 
+from sqlalchemy import Column, JSON
+
 class Word(SQLModel, table=True):
     """词库表 - Vocabulary word entry"""
     id: Optional[int] = Field(default=None, primary_key=True)
     text: str = Field(index=True, unique=True)  # The word itself
-    definition: str  # Primary definition
-    level: str = Field(default="GRE", index=True)  # GRE, 考研, TOEFL, etc.
-    phonetic: Optional[str] = None  # IPA pronunciation
+    definition: str  # Primary definition (simple string for backward compat)
+    
+    # --- New Rich Fields ---
+    phonetic_us: Optional[str] = None  # US IPA
+    phonetic_uk: Optional[str] = None  # UK IPA
+    phonetic: Optional[str] = None  # Fallback IPA
+    
+    # Store complex structures as JSON
+    # definitions: [{pos: 'n.', meaning: '...', tags: '...'}, ...]
+    definition_json: Optional[list] = Field(default=None, sa_column=Column(JSON))
+    
+    # exam_meta: [{exam: 'CET4', year: 2023, sentence: '...', translation: '...'}]
+    exam_meta: Optional[list] = Field(default=None, sa_column=Column(JSON))
+    
+    # Tags/Source: e.g. "CET4,GRE,Kaoyan"
+    level: str = Field(default="GRE", index=True)
+    collins: int = Field(default=0)  # Collins stars 0-5
+    oxford: int = Field(default=0)   # Oxford 3000 (1=yes)
+    tag: Optional[str] = None        # Raw tags from ECDICT
+    exchange: Optional[str] = None   # Word forms: p:pl, d:done, etc.
+    
     options: Optional[str] = None  # JSON string of distractor options
 
 
@@ -45,7 +65,12 @@ class WordResponse(SQLModel):
     text: str
     definition: str
     phonetic: Optional[str] = None
+    phonetic_us: Optional[str] = None
+    phonetic_uk: Optional[str] = None
+    definition_json: Optional[list] = None
+    exam_meta: Optional[list] = None
     options: list[str] = []  # Parsed from JSON
+
 
 
 class ProgressUpdate(SQLModel):

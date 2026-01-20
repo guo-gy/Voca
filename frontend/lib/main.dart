@@ -150,8 +150,16 @@ class _SplashScreenState extends State<SplashScreen> {
 }
 
 /// Home Page - Entry point with branding
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String _selectedLevel = 'GRE';
+  final List<String> _levels = ['Gaokao', 'CET4', 'CET6', 'Kaoyan', 'TOEFL', 'GRE'];
 
   @override
   Widget build(BuildContext context) {
@@ -199,6 +207,45 @@ class HomePage extends StatelessWidget {
               
               const Spacer(flex: 2),
               
+              // Level Selection
+              Text(
+                '选择词库',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: VocaTheme.textMuted,
+                  letterSpacing: 2,
+                ),
+              ).animate().fadeIn(delay: 400.ms),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: _levels.map((level) {
+                  final isSelected = _selectedLevel == level;
+                  return ChoiceChip(
+                    label: Text(level),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) {
+                        setState(() => _selectedLevel = level);
+                      }
+                    },
+                    selectedColor: VocaTheme.cyan,
+                    backgroundColor: VocaTheme.surface,
+                    labelStyle: TextStyle(
+                      color: isSelected ? VocaTheme.background : VocaTheme.textSecondary,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                    ),
+                    side: BorderSide(
+                      color: isSelected ? VocaTheme.cyan : VocaTheme.surfaceLight,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  );
+                }).toList(),
+              ).animate().fadeIn(delay: 500.ms),
+              
+              const SizedBox(height: 32),
+              
               // Start Button
               SizedBox(
                 width: double.infinity,
@@ -206,7 +253,7 @@ class HomePage extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).push(
                       PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => const LearningPage(),
+                        pageBuilder: (context, animation, secondaryAnimation) => LearningPage(level: _selectedLevel),
                         transitionsBuilder: (context, animation, secondaryAnimation, child) {
                           return SlideTransition(
                             position: Tween<Offset>(
@@ -235,20 +282,7 @@ class HomePage extends StatelessWidget {
                     ],
                   ),
                 ),
-              ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.3),
-              
-              const SizedBox(height: 16),
-              
-              // Secondary action
-              TextButton(
-                onPressed: () {
-                  // TODO: Level selection
-                },
-                child: const Text(
-                  '选择词库: GRE / 考研',
-                  style: TextStyle(color: VocaTheme.textMuted),
-                ),
-              ).animate().fadeIn(delay: 600.ms),
+              ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.3),
               
               const Spacer(),
             ],
@@ -318,3 +352,4 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+

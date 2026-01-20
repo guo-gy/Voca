@@ -32,11 +32,11 @@ async def get_learning_session(
     
     Returns `count` random words where the user's mastery_count < 3
     """
-    # Get all words (ignore level filter for now to ensure 10 words)
+    # Get all words containing the specified level (e.g. "CET4" in "CET4,GRE")
     if level == "ALL":
         words_stmt = select(Word)
     else:
-        words_stmt = select(Word).where(Word.level == level)
+        words_stmt = select(Word).where(Word.level.like(f"%{level}%"))
     all_words = db.exec(words_stmt).all()
     
     print(f"[Session API] Total words in DB: {len(all_words)}")
@@ -65,6 +65,10 @@ async def get_learning_session(
             text=word.text,
             definition=word.definition,
             phonetic=word.phonetic,
+            phonetic_us=word.phonetic_us,
+            phonetic_uk=word.phonetic_uk,
+            definition_json=word.definition_json,
+            exam_meta=word.exam_meta,
             options=options
         ))
     

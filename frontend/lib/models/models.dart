@@ -1,33 +1,61 @@
 /// Voca 语刻 - Data Models
 
 /// Word model for vocabulary items
+/// Word definition entry
+class WordDefinition {
+  final String pos; // Part of speech (n., v., etc.)
+  final String meaning;
+  final String tags;
+
+  WordDefinition({required this.pos, required this.meaning, required this.tags});
+
+  factory WordDefinition.fromJson(Map<String, dynamic> json) {
+    return WordDefinition(
+      pos: json['pos'] as String? ?? 'unk.',
+      meaning: json['meaning'] as String? ?? '',
+      tags: json['tags'] as String? ?? '',
+    );
+  }
+}
+
 class Word {
   final int id;
   final String text;
   final String definition;
   final String? phonetic;
-  final List<String> options; // Answer options (including correct one)
-  
+  final String? phoneticUs;
+  final String? phoneticUk;
+  final List<WordDefinition>? definitions;
+  final List<String> options;
+
   Word({
     required this.id,
     required this.text,
     required this.definition,
     this.phonetic,
+    this.phoneticUs,
+    this.phoneticUk,
+    this.definitions,
     this.options = const [],
   });
-  
+
   factory Word.fromJson(Map<String, dynamic> json) {
     return Word(
       id: json['id'] as int,
       text: json['text'] as String,
       definition: json['definition'] as String,
       phonetic: json['phonetic'] as String?,
+      phoneticUs: json['phonetic_us'] as String?,
+      phoneticUk: json['phonetic_uk'] as String?,
+      definitions: (json['definition_json'] as List<dynamic>?)
+          ?.map((e) => WordDefinition.fromJson(e as Map<String, dynamic>))
+          .toList(),
       options: (json['options'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList() ?? [],
     );
   }
-  
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'text': text,

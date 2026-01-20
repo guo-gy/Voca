@@ -9,7 +9,8 @@ import '../providers/learning_provider.dart';
 import 'summary_page.dart';
 
 class LearningPage extends ConsumerStatefulWidget {
-  const LearningPage({super.key});
+  final String level;
+  const LearningPage({super.key, this.level = 'GRE'});
 
   @override
   ConsumerState<LearningPage> createState() => _LearningPageState();
@@ -21,7 +22,7 @@ class _LearningPageState extends ConsumerState<LearningPage> {
     super.initState();
     // Start session on page load
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(learningProvider.notifier).startSession();
+      ref.read(learningProvider.notifier).startSession(level: widget.level);
     });
   }
 
@@ -221,39 +222,123 @@ class _LearningPageState extends ConsumerState<LearningPage> {
         ],
       ),
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Word text
-            Text(
-              word.text,
-              style: Theme.of(context).textTheme.displayLarge,
-            ).animate().fadeIn().slideY(begin: -0.2),
-            
-            const SizedBox(height: 12),
-            
-            // Phonetic
-            if (word.phonetic != null)
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Word text
               Text(
-                word.phonetic!,
-                style: Theme.of(context).textTheme.displayMedium,
-              ).animate().fadeIn(delay: 100.ms),
-            
-            // Feedback text
-            if (isAnswering) ...[
-              const SizedBox(height: 24),
-              Text(
-                lastCorrect == true ? '✓ 正确！' : '✗ 再想想',
-                style: TextStyle(
-                  color: lastCorrect == true ? VocaTheme.success : VocaTheme.error,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+                word.text,
+                style: Theme.of(context).textTheme.displayLarge,
+              ).animate().fadeIn().slideY(begin: -0.2),
+              
+              const SizedBox(height: 12),
+              
+              // Phonetics Row (US / UK)
+              if (word.phoneticUs != null || word.phoneticUk != null)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (word.phoneticUk != null)
+                      _buildPhoneticChip('🇬🇧', word.phoneticUk!),
+                    if (word.phoneticUk != null && word.phoneticUs != null)
+                      const SizedBox(width: 16),
+                    if (word.phoneticUs != null)
+                      _buildPhoneticChip('🇺🇸', word.phoneticUs!),
+                  ],
+                ).animate().fadeIn(delay: 100.ms)
+              else if (word.phonetic != null)
+                Text(
+                  '/${word.phonetic}/',
+                  style: Theme.of(context).textTheme.displayMedium,
+                ).animate().fadeIn(delay: 100.ms),
+              
+              // Detailed Definitions (Only shown when answering/feedback)
+              if (isAnswering && word.definitions != null && (word.definitions as List).isNotEmpty) ...[
+                const SizedBox(height: 24),
+                const Divider(color: VocaTheme.surfaceLight),
+                const SizedBox(height: 16),
+                ...word.definitions!.map<Widget>((def) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: VocaTheme.cyan.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          def.pos,
+                          style: const TextStyle(
+                            color: VocaTheme.cyan,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          def.meaning,
+                          style: const TextStyle(
+                            color: VocaTheme.textPrimary,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )).toList(),
+              ],
+
+              // Simple Feedback if no detailed defs
+              if (isAnswering && (word.definitions == null || (word.definitions as List).isEmpty)) ...[
+                 const SizedBox(height: 24),
+                 Text(
+                  lastCorrect == true ? '✓ 正确！' : '✗ 记住了：${word.definition}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: lastCorrect == true ? VocaTheme.success : VocaTheme.error,
+                    fontSize: 16,
+                  ),
                 ),
-              ).animate().scale(begin: const Offset(0.8, 0.8)),
+              ],
             ],
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPhoneticChip(String flag, String ipa) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: VocaTheme.background,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: VocaTheme.surfaceLight),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(flag, style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 6),
+          Text(
+            '/$ipa/', 
+            style: const TextStyle(
+              fontFamily: 'Arial',
+              color: VocaTheme.textSecondary,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
     ).animate(
       target: isAnswering ? 1 : 0,
     ).shake(
